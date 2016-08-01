@@ -5,17 +5,22 @@
     <title>Task list</title>
     <link rel="stylesheet" type="text/css" href="styles/tasks.css" media="screen">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-    <script src="scripts/jquery.tmpl.js"></script>
+    <script src="scripts/jquery-validate.js"></script>
+    <script src="scripts/jquery-tmpl.min.js"></script>
+    <script src="scripts/jquery-serialization.js"></script>
+    <script src="scripts/tasks-controller.js"></script>
+    <script src="scripts/tasks-webstorage.js"></script>
   </head>
   <body>
     <header>
       <span>Task list</span>
     </header>
-    <main>
+    <main id="taskPage">
       <section id="taskCreation" class="not">
-        <form class="" action="index.html" method="post">
+        <form id ="taskForm" class="" action="index.html" method="post">
+          <input type="hidden" name="id"/>
           <div class="">
-            <label for="">Task</label><input type="text" required="required" name="task" class="large" placeholder="Breakfast at Tiffanys"/>
+            <label for="">Task</label><input type="text" required="required" maxlength="200" name="task" class="large" placeholder="Breakfast at Tiffanys"/>
           </div>
           <div class="">
             <label for="">Required by</label><input type="date" required="required" name="requiredBy"/>
@@ -30,7 +35,7 @@
 
           <nav>
             <a href="#" id="saveTask">Save task</a>
-            <a href="#">Clear task</a>
+            <a href="#" id="clearTask">Clear task</a>
           </nav>
         </form>
       </section>
@@ -100,6 +105,12 @@
     <footer>You have 3 tasks</footer>
   </body>
   <script>
+    $(document).ready(function() {
+      tasksController.init($('#taskPage'));
+      tasksController.loadTasks();
+    });
+  </script>
+  <!-- <script>
     $(document).ready(function(){
     $('[required="required"]').prev('label').append('<span>*</span>').children('span').addClass('required');
     $('tbody tr:even').addClass('even');
@@ -119,28 +130,29 @@
       var task = $('form').toObject();
     $('#taskRow').tmpl(task).appendTo($('#tblTasks tbody'));
     });
-  });
-  (function($){
-    $.fn.extend({
-      toObject: function() {
-        var result = {}
-        $.each(this.serializeArray(), function(i, v) {
-          result[v.name] = v.value;
-        });
-        return result;
-      },
-      fromObject: function(obj){
-        $.each(this.find(':input'), function(i, v) {
-          var name = $(v).attr('name');
-          if (obj[name]) {
-            $(v).val(obj[name]);
-          } else {
-            $(v).val('');
-          }
-        });
-      }
-    });
-  })(jQuery);
+  }); -->
+<!--
+  // (function($){
+  //   $.fn.extend({
+  //     toObject: function() {
+  //       var result = {}
+  //       $.each(this.serializeArray(), function(i, v) {
+  //         result[v.name] = v.value;
+  //       });
+  //       return result;
+  //     },
+  //     fromObject: function(obj){
+  //       $.each(this.find(':input'), function(i, v) {
+  //         var name = $(v).attr('name');
+  //         if (obj[name]) {
+  //           $(v).val(obj[name]);
+  //         } else {
+  //           $(v).val('');
+  //         }
+  //       });
+  //     }
+  //   });
+  // })(jQuery); -->
 
   </script>
   <script id="taskRow" type="text/x-jQuery-tmpl">
@@ -151,9 +163,9 @@
           <td>${category}</td>
             <td>
               <nav>
-                <a href="#">Edit</a>
+                <a href="#" class="editRow" data-task-id="${id}">Edit</a>
                 <a href="#">Complete</a>
-                <a href="#" class="deleteRow">Delete</a>
+                <a href="#" class="deleteRow" data-task-id="${id}">Delete</a>
               </nav>
             </td>
       </tr>
