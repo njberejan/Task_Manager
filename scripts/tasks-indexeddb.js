@@ -70,6 +70,34 @@ storageEngine = function() {
         errorCallback('object_not_stored', 'It is not possible to store the object');
       };
     },
+    saveAll : function(type, objs, successCallback, errorCallback) {
+      if (!database) {
+        errorCallback('storage_api_not_initialized', 'The storage engine has not been initialized');
+      }
+      var tx = database.transaction([type], "readwrite");
+      tx.oncomplete = function(event) {
+        successCallback(objs);
+      };
+      tx.onerror = function(event) {
+        errorCallback('transaction_error', 'It is not possible to store the object');
+      };
+      var objectStore = tx.objectStore(type);
+      $.each(objs, function(indx, obj) {
+        if (!obj.id) {
+          delete obj.id;
+        } else {
+          obj.id = parseInt(obj.id)
+        }
+        var request = objectStore.put(obj);
+        request.onsuccess = function(event) {
+          obj.id = event.target.result
+        }
+        request.onerror = function(event) {
+          errorCallback('object_not_stored', 'It is not possible to store the object');
+        };
+      });
+    },
+
     findAll : function(type, successCallback, errorCallback) {
       if (!database) {
         errorCallback('storage_api_not_initialized', 'The storage engine has not been initialized');

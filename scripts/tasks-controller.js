@@ -26,6 +26,37 @@ tasksController = function() {
     });
   }
 
+  function loadTask(csvTask) {
+    var tokens = $.csv.toArray(csvTask);
+    if (tokens.length == 3) {
+      var task = {};
+      task.task = tokens[0];
+      task.requiredBy = tokens[1];
+      task.category = tokens[2];
+      return task;
+    }
+    return null;
+  }
+
+  function loadFromCSV(event) {
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+      var contents = evt.target.result;
+      var worker = new Worker('scripts/tasks-csvparser.js');
+        worker.addEventListener('message', function(e) {
+          var tasks = e.data;
+          storageEngine.saveAll('task', tasks, function() {
+            tasksController.loadTasks();
+          }, errorLogger);
+        }, false);
+        worker.postMessage(contents);
+      };
+      reader.onerror = function(evt) {
+        errorLogger('cannot_read_file', 'The file specified cannot be read');
+      };
+      reader.readAsText(event.target.files[0]);
+    }
+
 
   return {
     init: function(page, callback){
@@ -47,12 +78,7 @@ tasksController = function() {
 
           $(taskPage).find('#btnAddTask').click(function(evt){
             evt.preventDefault();
-
           $(taskPage).find('#taskCreation').removeClass('not');
-          });
-
-          $(taskPage).find('#tblTasks tbody').on('click', 'tr', function(evt){
-            $(evt.target).closest('td').siblings().andSelf().toggleClass('rowHighlight');
           });
 
           $(taskPage).find('#tblTasks tbody').on('click', '.deleteRow', function(evt) {
@@ -96,6 +122,13 @@ tasksController = function() {
               }, errorLogger);
             }, errorLogger);
           });
+
+          $(taskPage).find('#tblTasks tbody').on('click', 'tr', function(evt) {
+          $(evt.target).closest('td').siblings().addBack().toggleClass('rowHighlight');
+          });
+
+
+          $('#importFile').change(loadFromCSV);
 
           intialised = true;
       }
